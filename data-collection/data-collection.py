@@ -11,10 +11,12 @@ from typing import List
 
 
 # Load credentials
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-CRDENTIAL_FILE = 'credentials/google-credentials.json'
-TOKEN_FILE = 'credentials/token.json'
-DATA_FILE = 'data/job_application_emails.csv'
+CRDENTIAL_FILE = f'{script_dir}/credentials/google-credentials.json'
+TOKEN_FILE = f'{parent_dir}/credentials/token.json'
+DATA_FILE = f'{parent_dir}/data/job_application_emails.csv'
 
 
 def get_credentials(token_file: str, credentials_file: str, scopes: List[str]) -> Credentials:
