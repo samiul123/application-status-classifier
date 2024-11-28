@@ -1,0 +1,33 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+google-auth = "*"
+google-auth-oauthlib = "*"
+google-auth-httplib2 = "*"
+google-api-python-client = "*"
+numpy = "*"
+plotly = "*"
+datasets = "*"
+requests = "*"
+nlpaug = "*"
+sentencepiece = "*"
+gensim = "*"
+wordcloud = "*"
+matplotlib = "*"
+tensorflow = "*"
+transformers = "*"
+spacy = "==3.7.5"
+nltk = "*"
+pandas = "*"
+torch = "*"
+hiclass = "==4.12.1"
+scipy = "*"
+scikit-learn = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"

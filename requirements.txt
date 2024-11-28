@@ -1,20 +1,50 @@
+# # Data collection packages
+# google-auth
+# google-auth-oauthlib
+# google-auth-httplib2
+# google-api-python-client
+# numpy==1.26.0
+# plotly==5.24.1
+# datasets==3.1.0
+# requests==2.32.3
+# nlpaug==1.1.11
+# sentencepiece==0.2.0
+# nltk==3.9.1
+# gensim==4.3.3
+# wordcloud==1.9.4
+# matplotlib==3.9.2
+# tensorflow==2.18.0
+# transformers==4.46.3
+# spacy==3.8.2
+# nltk==3.9.1
+# pandas==2.2.3
+# torch==2.5.1
+# hiclass==4.12.0
+# scipy==1.12.0
+# scikit-learn==1.4.2
 # Data collection packages
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
 google-api-python-client
-plotly==5.24.1
-hiclass==3.1.0
-datasets==3.1.0
-requests==2.32.3
-nlpaug==1.1.11
-torch==2.3.0
-transformers==4.44.1
-sentencepiece==0.2.0
-nltk==3.9.1
-gensim==4.3.3
-wordcloud==1.9.4
-matplotlib==3.9.2
-
-
+numpy
+plotly
+datasets
+requests
+nlpaug
+sentencepiece
+nltk
+gensim
+wordcloud
+matplotlib
+tensorflow
+transformers
+spacy==3.7.5
+nltk
+pandas
+torch
+hiclass==4.12.1
+scipy
+scikit-learn
+git+https://github.com/charles9n/bert-sklearn.git
 

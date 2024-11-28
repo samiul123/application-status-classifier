@@ -163,3 +163,5 @@ cython_debug/
 credentials/
 data/
 gdrive/
+model/
+bert-sklearn/

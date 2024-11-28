@@ -17,6 +17,7 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 CRDENTIAL_FILE = f'{script_dir}/credentials/google-credentials.json'
 TOKEN_FILE = f'{parent_dir}/credentials/token.json'
 DATA_FILE = f'{parent_dir}/data/job_application_emails.csv'
+NON_JOB_EMAILS = f'{parent_dir}/data/non_job_application_emails.csv'
 
 
 def get_credentials(token_file: str, credentials_file: str, scopes: List[str]) -> Credentials:
@@ -63,7 +64,6 @@ def data_encoder(text: str) -> str:
     return None
 
 def extract_message_body(payload) -> str:
-    """Recursively search for the first available 'data' field in the payload."""
     if "data" in payload.get("body", {}):
         return payload["body"]["data"]
     
@@ -76,12 +76,10 @@ def extract_message_body(payload) -> str:
     return None
 
 def read_message(content) -> str:
-    """Extract and return the text from an email message's content."""
     message = extract_message_body(content['payload'])
     
     if not message:
         print("No data found in body.")
-        # print(content)
         return None
 
     decoded_message = data_encoder(message)
@@ -91,10 +89,14 @@ def read_message(content) -> str:
     return soup.get_text()
 
 # Fetch emails based on specific keywords
-def fetch_emails(service, query="job application OR interview OR offer OR rejection"):
+def fetch_emails(service, query="job application OR interview OR offer OR rejection", limit=500, non_job=False, after_date=None, before_date=None):
     try:
-        # Search emails matching the query
-        results = service.users().messages().list(userId='me', q=query, maxResults=500).execute()
+        if after_date:
+            query += f" after:{after_date}"
+        if before_date:
+            query += f" before:{before_date}"
+            
+        results = service.users().messages().list(userId='me', q=query, maxResults=limit).execute()
         messages = results.get('messages', [])
         
         email_data = []
@@ -105,14 +107,13 @@ def fetch_emails(service, query="job application OR interview OR offer OR reject
             if not msg_str:
                 continue
             
-            # Retrieve the 'From' header from the email's headers
             headers = email['payload'].get('headers', [])
             from_email = next((header['value'] for header in headers if header['name'] == 'From'), None)
             
             email_data.append({
                 "ID": msg['id'],
                 "Text": msg_str,
-                "Label": "",
+                "Label": "Not A Job" if non_job else "",
                 "From": from_email if from_email else ''
             })
         return email_data
@@ -124,7 +125,6 @@ def fetch_emails(service, query="job application OR interview OR offer OR reject
         print(f"Key error: {error}")
         return []
     
-# Save fetched emails to a CSV file
 def save_emails_to_csv(emails, filename=DATA_FILE):
     if not emails:
         print("Email list is empty.")
@@ -138,7 +138,7 @@ def save_emails_to_csv(emails, filename=DATA_FILE):
     print(f"{len(emails)} emails saved to {filename} successfully!")
 
 
-query = '''twilio OR doordash OR zip OR singlestore OR salesforce OR soma OR microsoft OR x OR redfin OR boomi OR rockwell OR convera OR zalando OR "delivery hero" OR "insight global" OR
+job_email_query = '''twilio OR doordash OR zip OR singlestore OR salesforce OR soma OR microsoft OR x OR redfin OR boomi OR rockwell OR convera OR zalando OR "delivery hero" OR "insight global" OR
 pendo OR splunk OR coinbase OR cisco OR bitgo OR amazon OR snowflake OR micron OR geico OR codieum OR notion OR topaz OR shipt OR meta OR google OR playstation OR openai OR intuit OR EA OR siemens OR 
 pinterest OR medallia OR docusign OR accenture OR seamgen OR rfa OR metropoliton OR chs OR honeywell OR netflix OR mongodb OR rubrik OR paypal OR waabi OR "service max" OR atlassian OR zoom OR roblox OR 
 barr OR entegris OR persona OR "service now" OR "silicon labs" OR actalent OR tock OR amex OR engine OR caterpillar OR ally OR snap OR adobe OR beaconfire OR nvidia OR tesla OR delta OR stripe OR motorola OR 
@@ -165,11 +165,20 @@ virtu OR square OR bytedance OR tiktok OR databento OR autodesk OR loop OR drw O
 -from:@billing.simplify.jobs -from:@webex.com -from:@hackerrankforwork.com -from:@safecolleges.com -from:noreply-accountsecurity@tesla.com -from:@paperpile.com -from:@lucid.co
 -from:recruitingprograms@tesla.com -from:@accounts.google.com -from:mail-noreply@google.com'''
 
+non_job_email_query = '''
+-from:(twilio OR doordash OR zip OR singlestore OR salesforce OR soma OR microsoft OR x OR redfin OR boomi OR convera OR zalando OR "delivery hero" OR "insight global" OR
+pendo OR splunk OR coinbase OR cisco OR bitgo OR amazon OR snowflake OR micron OR geico OR codieum OR notion OR topaz OR shipt OR meta OR google OR playstation OR openai OR intuit OR EA OR siemens OR 
+pinterest OR medallia OR docusign OR accenture OR seamgen OR rfa OR metropoliton OR chs OR honeywell OR netflix OR mongodb OR rubrik OR paypal OR waabi OR "service max" OR atlassian OR zoom OR roblox OR 
+barr OR entegris OR persona OR "service now" OR "silicon labs" OR actalent OR tock OR amex OR engine OR caterpillar OR ally OR snap OR adobe OR beaconfire OR nvidia OR tesla OR delta OR stripe OR motorola OR 
+virtu OR square OR bytedance OR tiktok OR databento OR autodesk OR loop OR drw OR pdt OR palantir OR optiver OR jpmorgan OR "morgan stanley" OR milliman OR "boring company" OR apple)
+-"job application" -"interview" -"offer" -"rejection" -"career" -"application"
+'''
+
 try:
     creds = get_credentials(TOKEN_FILE, CRDENTIAL_FILE, SCOPES)
     refresh_credentials(creds)
     service = build_service(creds)
-    emails = fetch_emails(service, query)
-    save_emails_to_csv(emails)
+    emails = fetch_emails(service, non_job_email_query, limit=400, non_job=True, before_date='2024/11/22')
+    save_emails_to_csv(emails, filename=NON_JOB_EMAILS)
 except Exception as ex:
     print(f"{ex}")
